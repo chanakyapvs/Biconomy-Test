@@ -37,3 +37,4 @@ The order of listing is wallet ID, who created the wallet, who benefits from the
 - Claim button vanishes if tokens/ether was received by beneficiary and if token/ether present in the wallet are zero (when tokens are received by beneficiary, wallet balance becomes zero)
 - Beneficiary of an wallet need not bear the burden of gas fees. They can transact even without ether in wallet. 
 - Biconomy's meta transactions api was used to this effect
+- Amounts mentioned here are in ether
