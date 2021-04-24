@@ -35,11 +35,9 @@ class App extends Component {
     if (window.ethereum) {
       window.web3 = new Web3(window.ethereum)
       await window.ethereum.enable()
-      console.log("bam")	
     }
     else if (window.web3) {
       window.web3 = new Web3(window.web3.currentProvider)
-      console.log("fam")
     }
     else {
       window.alert('Non-Ethereum browser detected. You should consider trying MetaMask!')
@@ -127,7 +125,7 @@ class App extends Component {
     const web3 = window.web3
     console.log((token).toString())
     const times = web3.eth.Contract(Timelock, "0x33dE53Ee241126882692C3864AE06228E496ffFB");
-    const allowance = await times.methods.allowanceCheck("0x2D98d05160A855F85025F8d0843188B1339163d8").call({from: this.state.account})
+    const allowance = await times.methods.allowanceCheck(token).call({from: this.state.account})
     console.log((allowance._hex))
     window.alert("User already gave allowance of  " + allowance + " wei tokens from  " + token + "  to the wallet")
   }
