@@ -35,4 +35,5 @@ The table shows all the time locked wallets that are in this wallet contract.
 The order of listing is wallet ID, who created the wallet, who benefits from the wallet, ERC20 token address(if you are using token wallet, else if shows zero address), Release time in epoch time, wallet's balance in tokens, wallet's balance in ether 
 - A claim button is shown if wallet has balance
 - Claim button vanishes if tokens/ether was received by beneficiary and if token/ether present in the wallet are zero (when tokens are received by beneficiary, wallet balance becomes zero)
-
+- Beneficiary of an wallet need not bear the burden of gas fees. They can transact even without ether in wallet. 
+- Biconomy's meta transactions api was used to this effect
