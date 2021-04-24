@@ -11,6 +11,8 @@ Instructions to run:
 3. you can find your account address on top right corner
 4. clicking on the title of the dapp takes you to this code
 
+Note reload the page after every of the below operations
+
 Form 1: 
 A time lock wallet for ETH - 
 - inputs: To whom you want to send ether, Release time of funds in epoch time, Amount in Wei 
