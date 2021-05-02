@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import Web3 from 'web3'
 import './App.css';
 import Timelock from '../abis/timelock.json'
+import lock from '../abis/lock.json'
 import Navbar from './Navbar'
 import Main from './Main'
 import { NotificationContainer, NotificationManager } from 'react-notifications';
@@ -49,27 +50,34 @@ class App extends Component {
     // Load account
     const accounts = await web3.eth.getAccounts()
     this.setState({ account: accounts[0] })
-    //const networkId = await web3.eth.net.getId()
+    const networkId = await web3.eth.net.getId()
+    if(networkId != 42){
+      window.alert("Select kovan network wallet on metamask")
+    }
     //const networkData = Marketplace.networks[networkId]
     if(true) {
       console.log("asfa")
-      const times = web3.eth.Contract(Timelock, "0x33dE53Ee241126882692C3864AE06228E496ffFB");
+      const times = web3.eth.Contract(lock, "0x551F5A0AB7C084ae825cB8bD4Ef22148Ae4c26c2");
       const counters = await times.methods.counter().call()
       console.log(counters)
       for (var i = 1; i <= counters; i++) {
         const wallet = await times.methods.walletInfo(i).call()
+        await times.events.MetaTransactionExecuted({
+          fromBlock: 0
+      }, function(error, event){ console.log(event); })
+      .on('data', function(event){
+          console.log(event); // same results as the optional callback above
+      })
 	console.log(wallet)
 	wallet[6] = i
-	console.log(wallet)	
+	//console.log(wallet)	
         this.setState({
           wallets: [...this.state.wallets, wallet]
         })
       }	
-      this.setState({ loading: false})
     } else {
       window.alert('Marketplace contract not deployed to detected network.')
     }
-
   }
 
   constructor(props) {
@@ -84,7 +92,8 @@ class App extends Component {
       balance: 0,
       beneficiary: '',
       provider: '',
-      contract:	''
+      contract:	'',
+      decimals: 0
     }
 
     this.release = this.release.bind(this)
@@ -96,56 +105,131 @@ class App extends Component {
 
  
   TimelocksEth(beneficiary, releaseTime, amount) {
-    this.setState({ loading: true })
     const web3 = window.web3
-    const times = web3.eth.Contract(Timelock, "0x33dE53Ee241126882692C3864AE06228E496ffFB");
+    const times = web3.eth.Contract(lock, "0x551F5A0AB7C084ae825cB8bD4Ef22148Ae4c26c2");
+    amount = web3.utils.toWei(amount.toString(), 'ether')
     times.methods.TimelocksEth(beneficiary, releaseTime, amount).send({ from: this.state.account, value: amount })
     .once('receipt', (receipt) => {
       window.alert("successful")
-      this.setState({ loading: false })
     })
   }
  
-  approve(token, abi, amount) {
-    this.setState({ loading: true })
+ async approve(token, amount) {
     const web3 = window.web3
-    abi = JSON.parse(abi)
-    console.log(abi)
+    //abi = JSON.parse(abi)
+    //console.log(abi)
     console.log(token)
     console.log(amount)
-    const times = web3.eth.Contract(abi, token);
-    times.methods.approve("0x33dE53Ee241126882692C3864AE06228E496ffFB",amount).send({ from: this.state.account})
+    const AbiDecimal = [{
+      "inputs": [],
+      "name": "decimals",
+      "outputs": [
+        {
+          "internalType": "uint8",
+          "name": "",
+          "type": "uint8"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }]
+    const tokenContract = web3.eth.Contract(AbiDecimal, token);
+    console.log(tokenContract)
+    const decimals = await tokenContract.methods.decimals().call({from: this.state.account})
+    const abiApprove = [{
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "spender",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "approve",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }] 
+    const times = web3.eth.Contract(abiApprove, token);
+    amount = web3.utils.toBN(amount).mul(web3.utils.toBN((10**decimals))).toString();
+    times.methods.approve("0x551F5A0AB7C084ae825cB8bD4Ef22148Ae4c26c2",amount).send({ from: this.state.account})
     .once('receipt', (receipt) => {
-      this.setState({ loading: false })
     })
   }
 
  async allowanceCheck(token) {
-    this.setState({ loading: true })
     const web3 = window.web3
     console.log((token).toString())
-    const times = web3.eth.Contract(Timelock, "0x33dE53Ee241126882692C3864AE06228E496ffFB");
-    const allowance = await times.methods.allowanceCheck(token).call({from: this.state.account})
-    console.log((allowance._hex))
-    window.alert("User already gave allowance of  " + allowance + " wei tokens from  " + token + "  to the wallet")
+    const times = web3.eth.Contract(lock, "0x551F5A0AB7C084ae825cB8bD4Ef22148Ae4c26c2");
+    const AbiDecimal = [{
+      "inputs": [],
+      "name": "decimals",
+      "outputs": [
+        {
+          "internalType": "uint8",
+          "name": "",
+          "type": "uint8"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }]
+    const tokenContract = web3.eth.Contract(AbiDecimal, token);
+    console.log(tokenContract)
+    const decimals = await tokenContract.methods.decimals().call({from: this.state.account})
+    var allowance = await times.methods.allowanceCheck(token).call({from: this.state.account})
+    console.log((allowance))
+    allowance = web3.utils.toBN(allowance).div(web3.utils.toBN((10**decimals))).toString();
+    window.alert("User already gave allowance of  " + allowance + " tokens from  " + token + " with decimals " + decimals + "  to the wallet")
   }
 
- TimelocksToken(token, beneficiary, releaseTime, amount) {
-    this.setState({ loading: true })
+ async TimelocksToken(token, beneficiary, releaseTime, amount) {
     const web3 = window.web3
-    const times = web3.eth.Contract(Timelock, "0x33dE53Ee241126882692C3864AE06228E496ffFB");
+    const AbiDecimal = [{
+      "inputs": [],
+      "name": "decimals",
+      "outputs": [
+        {
+          "internalType": "uint8",
+          "name": "",
+          "type": "uint8"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }]
+    const times = web3.eth.Contract(lock, "0x551F5A0AB7C084ae825cB8bD4Ef22148Ae4c26c2");
+    const tokenContract = web3.eth.Contract(AbiDecimal, token);
+    console.log(tokenContract)
+    const decimals = await tokenContract.methods.decimals().call({from: this.state.account})
+    amount = web3.utils.toBN(amount).mul(web3.utils.toBN((10**decimals))).toString();
+    console.log(amount)
     times.methods.TimelocksToken(token, beneficiary, releaseTime, amount).send({ from: this.state.account })
     .once('receipt', (receipt) => {
-      this.setState({ loading: false })
-    })
+      console.log(receipt);
+    }).then(function(receipt){
+      console.log(receipt);
+  });
   }
+
+
 
     async release(walletID) {
     const domainData = {
   		name: "Time",
   		version: "2",
   		chainId: "42",  // Kovan
-  		verifyingContract: "0x33dE53Ee241126882692C3864AE06228E496ffFB"
+  		verifyingContract: "0x551F5A0AB7C084ae825cB8bD4Ef22148Ae4c26c2"
 		};
 	const domainType = [
   		{ name: "name", type: "string" },
@@ -164,11 +248,11 @@ class App extends Component {
     const biconomy = new Biconomy(window.ethereum, {apiKey: "zDe7Syat7.a987ecae-2631-42e8-8b4d-fccbbb8023ea", debug: true});
 	const web4 = new Web3(biconomy);
 	console.log(web4)
-	const contract = new web4.eth.Contract(Timelock, "0x33dE53Ee241126882692C3864AE06228E496ffFB");
+	const contract = new web4.eth.Contract(lock, "0x551F5A0AB7C084ae825cB8bD4Ef22148Ae4c26c2");
         const nonce = await contract.methods.nonces(window.ethereum.selectedAddress).call();
         biconomy.onEvent(biconomy.READY, async () => {
       await window.ethereum.enable();
-      const contract = new web4.eth.Contract(Timelock, "0x33dE53Ee241126882692C3864AE06228E496ffFB");
+      const contract = new web4.eth.Contract(lock, "0x551F5A0AB7C084ae825cB8bD4Ef22148Ae4c26c2");
     }).onEvent(biconomy.ERROR, (error, message) => {
       console.log(error)
     });
@@ -209,21 +293,12 @@ class App extends Component {
           console.log(v, "v")
           console.log(window.ethereum.selectedAddress, "userAddress")
           console.log(contract.methods) 
-          const promiEvent = await contract.methods
+          const meta = await contract.methods
             .release(walletID, window.ethereum.selectedAddress, r, s, v)
             .send({
               from: window.ethereum.selectedAddress
             }).once('transactionHash', function(hash){ console.log(hash) }).on('confirmation', function(confNumber, receipt, latestBlockHash){console.log("confirmed"); window.alert("successful meta-transaction of wallet ID" + walletID ) })
-          promiEvent.once("transactionHash", (hash) => {
-            console.log("Transaction Hash is ", hash)
-          }).once("confirmation", (confirmationNumber, receipt) => {
-            if (receipt.status) {
-		console.log("success")
-            } else {
-		console.log("Failed")
-            }
-            console.log(receipt)
-          })
+            .on('error', function(error){ console.log(error) })
         } else {
         }
       }
@@ -239,9 +314,8 @@ class App extends Component {
         <div className="container-fluid mt-5">
           <div className="row">
             <main role="main" className="col-lg-12 d-flex">
-              { this.state.loading
-                ? <div id="loader" className="text-center"><p className="text-center">Loading...</p></div>
-                : <Main
+              { 
+                <Main
                   approve = {this.approve}
                   allowanceCheck = {this.allowanceCheck}
  		  TimelocksEth = {this.TimelocksEth}

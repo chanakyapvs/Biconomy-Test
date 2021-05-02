@@ -81,14 +81,14 @@ class Main extends Component {
               onChange={e => this.setState({ tokenAlwc: e.target.value })}
               required />
           </div>
-          <button type="submit" className="btn btn-primary">Create Wallet</button>
+          <button type="submit" className="btn btn-primary">Check Allowance</button>
         </form>
         <p>&nbsp;</p>
 <h3>Approve Token Allowance</h3>
         <form onSubmit={(event) => {
           event.preventDefault()
-           console.log(this.state.tokenABI)	
-          this.props.approve(this.state.tokenAlwa, this.state.tokenABI, this.state.tokenAllow)
+           //console.log(this.state.tokenABI)	
+          this.props.approve(this.state.tokenAlwa, this.state.tokenAllow)
         }}>
 	  <div className="form-group mr-sm-2">
             <input
@@ -107,23 +107,12 @@ class Main extends Component {
               type="text"
 	      //value = {this.beneficiary=input}		  	
               className="form-control"
-              placeholder="token ABI"
-              value={this.state.val}
-              onChange={e => this.setState({ tokenABI: e.target.value })}
-              required />
-          </div>
-<div className="form-group mr-sm-2">
-            <input
-              id="token"
-              type="text"
-	      //value = {this.beneficiary=input}		  	
-              className="form-control"
               placeholder="token allowance"
               value={this.state.val}
               onChange={e => this.setState({ tokenAllow: e.target.value })}
               required />
           </div>
-          <button type="submit" className="btn btn-primary">Create Wallet</button>
+          <button type="submit" className="btn btn-primary">Approve Allowance</button>
         </form>
         <p>&nbsp;</p>
   <h3>Token Wallet</h3>
