@@ -11,11 +11,6 @@ Instructions to run:
 3. you can find your account address on top right corner
 4. clicking on the title of the dapp takes you to this code
 
-Updates:
-1. Msg.sender requirement added for meta transaction
-2. Fexibility in adding tokens that have decimals other than 18
-3. No requirement of abi to send tokens and approval
-
 
 Note reload the page after every of the below operations
 
