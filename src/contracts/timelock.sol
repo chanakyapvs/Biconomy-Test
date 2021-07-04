@@ -2,15 +2,8 @@
 
 pragma solidity ^0.8.0;
 
-import "./safeerc20.sol";
+import "./timerc.sol";
 
-/**
- * @dev A token holder contract that will allow a beneficiary to extract the
- * tokens after a given release time.
- *
- * Useful for simple vesting schedules like "advisors get all of their tokens
- * after 1 year".
- */
 contract Timelock {
     using SafeERC20 for IERC20;
     
